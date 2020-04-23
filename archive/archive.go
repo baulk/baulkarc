@@ -6,5 +6,6 @@ import "io"
 
 // Decompressor todo
 type Decompressor struct {
-	reader io.ReadCloser
+	in io.ReadCloser // diskfile
+
 }
