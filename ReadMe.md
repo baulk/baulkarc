@@ -1,5 +1,5 @@
-# BaulkUtils
+# BaulkTar
 
-Baulk Enhancement Kit
+BaulkTar Interesting compression and decompression tools
 
 WIP

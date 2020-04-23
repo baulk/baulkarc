@@ -1,3 +1,3 @@
-module github.com/baulk/baulkutils
+module github.com/baulk/baulktar
 
 go 1.14
