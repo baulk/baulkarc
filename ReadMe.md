@@ -1,5 +1,5 @@
-# BaulkTar
+# BaulkArc
 
-BaulkTar Interesting compression and decompression tools
+BaulkArc Interesting compression and decompression tools
 
 WIP
