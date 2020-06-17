@@ -4,6 +4,8 @@ import (
 	"archive/zip"
 	"io"
 	"os"
+
+	"golang.org/x/text/encoding"
 )
 
 // CompressionMethod compress method see https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
@@ -42,6 +44,7 @@ func Matched(buf []byte) bool {
 type Extractor struct {
 	fd                *os.File
 	zr                *zip.Reader
+	dec               *encoding.Decoder
 	OverwriteExisting bool
 	MkdirAll          bool
 }
@@ -57,7 +60,11 @@ func NewExtractor(fd *os.File, size int64) (*Extractor, error) {
 		fd.Close()
 		return nil, err
 	}
-	return &Extractor{fd: fd, zr: zr}, nil
+	e := &Extractor{fd: fd, zr: zr}
+	if ens := os.Getenv("ZIP_ENCODING"); len(ens) != 0 {
+		e.initializeEncoder(ens)
+	}
+	return e, nil
 }
 
 // Close fd
