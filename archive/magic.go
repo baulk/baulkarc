@@ -1,14 +1,21 @@
 package archive
 
 import (
-	"io"
+	"errors"
 	"os"
+
+	"github.com/baulk/baulkarc/archive/zip"
 )
 
-// NewDecompressorFromFile todo
-func NewDecompressorFromFile(file string) (*Decompressor, error) {
+// NewExtractor todo
+func NewExtractor(file string, overwriteExisting bool) (Extractor, error) {
 	fd, err := os.Open(file)
 	if err != nil {
+		return nil, err
+	}
+	sz, err := fd.Stat()
+	if err != nil {
+		fd.Close()
 		return nil, err
 	}
 	buf := make([]byte, 0, 256)
@@ -17,11 +24,14 @@ func NewDecompressorFromFile(file string) (*Decompressor, error) {
 		_ = fd.Close()
 		return nil, err
 	}
-	// check magic
-	if l == 1 {
+	if zip.Matched(buf[0:l]) {
+		e, err := zip.NewExtractor(fd, sz.Size())
+		if err != nil {
+			return nil, err
+		}
+		e.OverwriteExisting = overwriteExisting
+		e.MkdirAll = true
+		return e, nil
 	}
-	if _, err = fd.Seek(0, io.SeekStart); err != nil {
-		return nil, err
-	}
-	return nil, nil
+	return nil, errors.New("unsupport format")
 }

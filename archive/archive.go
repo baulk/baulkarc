@@ -8,3 +8,13 @@ import "io"
 type Decompressor struct {
 	in io.ReadCloser // diskfile
 }
+
+// Extractor todo
+type Extractor interface {
+	Extract(destination string) error
+	Close() error
+}
+
+// Archiver todo
+type Archiver interface {
+}

@@ -1,5 +1,11 @@
 package zip
 
+import (
+	"archive/zip"
+	"io"
+	"os"
+)
+
 // CompressionMethod compress method see https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
 type CompressionMethod uint16
 
@@ -30,4 +36,37 @@ func Matched(buf []byte) bool {
 	return (len(buf) > 3 && buf[0] == 0x50 && buf[1] == 0x4B &&
 		(buf[2] == 0x3 || buf[2] == 0x5 || buf[2] == 0x7) &&
 		(buf[3] == 0x4 || buf[3] == 0x6 || buf[3] == 0x8))
+}
+
+// Extractor todo
+type Extractor struct {
+	fd                *os.File
+	zr                *zip.Reader
+	OverwriteExisting bool
+	MkdirAll          bool
+}
+
+// NewExtractor new extractor
+func NewExtractor(fd *os.File, size int64) (*Extractor, error) {
+	if _, err := fd.Seek(0, io.SeekStart); err != nil {
+		fd.Close()
+		return nil, err
+	}
+	zr, err := zip.NewReader(fd, size)
+	if err != nil {
+		fd.Close()
+		return nil, err
+	}
+	return &Extractor{fd: fd, zr: zr}, nil
+}
+
+// Close fd
+func (e *Extractor) Close() error {
+	return e.fd.Close()
+}
+
+// Extract file
+func (e *Extractor) Extract(destination string) error {
+
+	return nil
 }
