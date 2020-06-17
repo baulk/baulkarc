@@ -1,4 +1,4 @@
-package archive
+package rar
 
 import "github.com/nwaples/rardecode"
 

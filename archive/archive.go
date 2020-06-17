@@ -7,5 +7,4 @@ import "io"
 // Decompressor todo
 type Decompressor struct {
 	in io.ReadCloser // diskfile
-
 }

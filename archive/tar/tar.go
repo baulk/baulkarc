@@ -1,4 +1,4 @@
-package archive
+package tar
 
 import "github.com/klauspost/compress/zstd"
 

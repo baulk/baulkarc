@@ -1,4 +1,4 @@
-package archive
+package zip
 
 import (
 	"archive/zip"
@@ -9,24 +9,9 @@ import (
 	"io/ioutil"
 	"sync"
 
+	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
 	"github.com/ulikunitz/xz/lzma"
-)
-
-// TODO support deflate64
-
-// value
-const (
-	Store    uint16 = 0
-	Deflate  uint16 = 8
-	Deflate9 uint16 = 9
-	BZIP2    uint16 = 12
-	LZMA     uint16 = 14
-	XZ       uint16 = 95
-	JPEG     uint16 = 96
-	WavPack  uint16 = 97
-	PPMd     uint16 = 98
-	AES      uint16 = 99
 )
 
 var bzip2ReaderPool sync.Pool
@@ -84,14 +69,18 @@ func newLzmaReader(r io.Reader) io.ReadCloser {
 	return ioutil.NopCloser(lr)
 }
 
-func zipRegister() {
-	zip.RegisterDecompressor(BZIP2, newBzip2Reader)
-	zip.RegisterDecompressor(LZMA, newLzmaReader)
-	zip.RegisterDecompressor(XZ, newXzReader)
+func newZstdReader(r io.Reader) io.ReadCloser {
+	zr, err := zstd.NewReader(r)
+	if err != nil {
+		return nil
+	}
+	return zr.IOReadCloser()
 }
 
-func magicIsZip(buf []byte) bool {
-	return (len(buf) > 3 && buf[0] == 0x50 && buf[1] == 0x4B &&
-		(buf[2] == 0x3 || buf[2] == 0x5 || buf[2] == 0x7) &&
-		(buf[3] == 0x4 || buf[3] == 0x6 || buf[3] == 0x8))
+func zipRegisterDecompressor() {
+	zip.RegisterDecompressor(uint16(BZIP2), newBzip2Reader)
+	zip.RegisterDecompressor(uint16(LZMA), newLzmaReader)
+	zip.RegisterDecompressor(uint16(XZ), newXzReader)
+	zip.RegisterDecompressor(uint16(ZSTD), newZstdReader)
+	zip.RegisterDecompressor(uint16(WINZIPZSTD), newZstdReader)
 }
