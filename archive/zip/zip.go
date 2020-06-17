@@ -22,6 +22,7 @@ const (
 
 func init() {
 	zipRegisterDecompressor()
+	zipRegisterCompressor()
 }
 
 // Matched magic
