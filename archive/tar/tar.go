@@ -27,12 +27,34 @@ type Extractor struct {
 	es *rules.ExtractSetting
 }
 
+// Close fd
+func (e *Extractor) Close() error {
+	return e.fd.Close()
+}
+
+// Extract file
+func (e *Extractor) Extract(destination string) error {
+	for {
+		hdr, err := e.r.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if hdr.Size != 0 {
+
+		}
+	}
+	return nil
+}
+
 // BrewingExtractor todo
 type BrewingExtractor struct {
-	fd *os.File
-	r  *tar.Reader
-	mr io.ReadCloser
-	es *rules.ExtractSetting
+	fd  *os.File
+	r   *tar.Reader
+	mwr io.ReadCloser
+	es  *rules.ExtractSetting
 }
 
 // Matched todo
@@ -72,20 +94,20 @@ func MatchExtension(name string) int {
 // NewBrewingExtractor todo
 func NewBrewingExtractor(fd *os.File, es *rules.ExtractSetting, alg int) (*BrewingExtractor, error) {
 	var err error
-	be := &BrewingExtractor{es: es}
+	e := &BrewingExtractor{es: es}
 	switch alg {
 	case rules.GZ:
-		be.mr, err = gzip.NewReader(fd)
+		e.mwr, err = gzip.NewReader(fd)
 		if err != nil {
 			fd.Close()
 			return nil, err
 		}
 	case rules.LZ4:
-		be.mr = ioutil.NopCloser(lz4.NewReader(fd))
+		e.mwr = ioutil.NopCloser(lz4.NewReader(fd))
 	case rules.Brotli:
-		be.mr = ioutil.NopCloser(brotli.NewReader(fd))
+		e.mwr = ioutil.NopCloser(brotli.NewReader(fd))
 	case rules.BZip2:
-		be.mr, err = bzip2.NewReader(fd, nil)
+		e.mwr, err = bzip2.NewReader(fd, nil)
 		if err != nil {
 			fd.Close()
 			return nil, err
@@ -96,19 +118,31 @@ func NewBrewingExtractor(fd *os.File, es *rules.ExtractSetting, alg int) (*Brewi
 			fd.Close()
 			return nil, err
 		}
-		be.mr = ioutil.NopCloser(r)
+		e.mwr = ioutil.NopCloser(r)
 	case rules.Zstandard:
 		dec, err := zstd.NewReader(fd)
 		if err != nil {
 			fd.Close()
 			return nil, err
 		}
-		be.mr = dec.IOReadCloser()
+		e.mwr = dec.IOReadCloser()
 	default:
 		fd.Close()
 		return nil, fmt.Errorf("unsupport compress algorithm %d", alg)
 	}
-	be.fd = fd
-	be.r = tar.NewReader(be.mr)
-	return be, nil
+	e.fd = fd
+	e.r = tar.NewReader(e.mwr)
+	return e, nil
+}
+
+// Close fd
+func (e *BrewingExtractor) Close() error {
+	_ = e.mwr.Close()
+	return e.fd.Close()
+}
+
+// Extract file
+func (e *BrewingExtractor) Extract(destination string) error {
+
+	return nil
 }
