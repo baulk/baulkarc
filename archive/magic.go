@@ -4,11 +4,12 @@ import (
 	"errors"
 	"os"
 
+	"github.com/baulk/baulkarc/archive/rules"
 	"github.com/baulk/baulkarc/archive/zip"
 )
 
 // NewExtractor todo
-func NewExtractor(file string, overwriteExisting bool) (Extractor, error) {
+func NewExtractor(file string, es *rules.ExtractSetting) (Extractor, error) {
 	fd, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -25,12 +26,10 @@ func NewExtractor(file string, overwriteExisting bool) (Extractor, error) {
 		return nil, err
 	}
 	if zip.Matched(buf[0:l]) {
-		e, err := zip.NewExtractor(fd, sz.Size())
+		e, err := zip.NewExtractor(fd, sz.Size(), es)
 		if err != nil {
 			return nil, err
 		}
-		e.OverwriteExisting = overwriteExisting
-		e.MkdirAll = true
 		return e, nil
 	}
 	return nil, errors.New("unsupport format")

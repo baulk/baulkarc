@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/baulk/baulkarc/archive/rules"
 	"golang.org/x/text/encoding"
 )
 
@@ -42,15 +43,14 @@ func Matched(buf []byte) bool {
 
 // Extractor todo
 type Extractor struct {
-	fd                *os.File
-	zr                *zip.Reader
-	dec               *encoding.Decoder
-	OverwriteExisting bool
-	MkdirAll          bool
+	fd  *os.File
+	zr  *zip.Reader
+	dec *encoding.Decoder
+	es  *rules.ExtractSetting
 }
 
 // NewExtractor new extractor
-func NewExtractor(fd *os.File, size int64) (*Extractor, error) {
+func NewExtractor(fd *os.File, size int64, es *rules.ExtractSetting) (*Extractor, error) {
 	if _, err := fd.Seek(0, io.SeekStart); err != nil {
 		fd.Close()
 		return nil, err
@@ -60,7 +60,7 @@ func NewExtractor(fd *os.File, size int64) (*Extractor, error) {
 		fd.Close()
 		return nil, err
 	}
-	e := &Extractor{fd: fd, zr: zr}
+	e := &Extractor{fd: fd, zr: zr, es: es}
 	if ens := os.Getenv("ZIP_ENCODING"); len(ens) != 0 {
 		e.initializeEncoder(ens)
 	}
