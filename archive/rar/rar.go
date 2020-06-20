@@ -3,7 +3,7 @@ package rar
 import (
 	"os"
 
-	"github.com/baulk/baulkarc/archive/settings"
+	"github.com/baulk/baulkarc/archive/basics"
 	"github.com/nwaples/rardecode"
 )
 
@@ -12,7 +12,7 @@ type Extractor struct {
 	fd *os.File
 	rr *rardecode.Reader     // underlying stream reader
 	rc *rardecode.ReadCloser // supports multi-volume archives (files only)
-	es *settings.ExtractSetting
+	es *basics.ExtractSetting
 }
 
 // Matched Magic
@@ -24,7 +24,7 @@ func Matched(buf []byte) bool {
 }
 
 // NewExtractor new extractor
-func NewExtractor(fd *os.File, es *settings.ExtractSetting) (*Extractor, error) {
+func NewExtractor(fd *os.File, es *basics.ExtractSetting) (*Extractor, error) {
 	rr, err := rardecode.NewReader(fd, es.Password)
 	if err != nil {
 		fd.Close()

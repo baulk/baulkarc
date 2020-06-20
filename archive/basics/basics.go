@@ -1,4 +1,4 @@
-package settings
+package basics
 
 // ExtractSetting todo
 type ExtractSetting struct {

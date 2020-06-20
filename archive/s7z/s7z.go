@@ -3,8 +3,9 @@ package s7z
 import (
 	"io"
 	"os"
+	"path"
 
-	"github.com/baulk/baulkarc/archive/settings"
+	"github.com/baulk/baulkarc/archive/basics"
 	"github.com/baulk/baulkarc/go7z"
 )
 
@@ -12,7 +13,7 @@ import (
 type Extractor struct {
 	fd  *os.File
 	szr *go7z.Reader
-	es  *settings.ExtractSetting
+	es  *basics.ExtractSetting
 }
 
 // Matched magic
@@ -23,7 +24,7 @@ func Matched(buf []byte) bool {
 }
 
 //NewExtractor new tar extractor
-func NewExtractor(fd *os.File, es *settings.ExtractSetting) (*Extractor, error) {
+func NewExtractor(fd *os.File, es *basics.ExtractSetting) (*Extractor, error) {
 	st, err := fd.Stat()
 	if err != nil {
 		fd.Close()
@@ -55,6 +56,7 @@ func (e *Extractor) Extract(destination string) error {
 		if err != nil {
 			return err
 		}
+		name := path.Clean(hdr.Name)
 		if hdr.IsEmptyStream && !hdr.IsEmptyFile {
 			if err := os.MkdirAll(hdr.Name, os.ModePerm); err != nil {
 				return err
