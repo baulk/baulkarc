@@ -57,5 +57,4 @@ func zipRegisterCompressor() {
 		return xz.NewWriter(w)
 	})
 	zip.RegisterCompressor(uint16(ZSTD), newZstdWriter)
-	zip.RegisterCompressor(uint16(WINZIPZSTD), newZstdWriter)
 }

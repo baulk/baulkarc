@@ -95,5 +95,4 @@ func zipRegisterDecompressor() {
 	zip.RegisterDecompressor(uint16(LZMA), newLzmaReader)
 	zip.RegisterDecompressor(uint16(XZ), newXzReader)
 	zip.RegisterDecompressor(uint16(ZSTD), newZstdReader)
-	zip.RegisterDecompressor(uint16(WINZIPZSTD), newZstdReader)
 }

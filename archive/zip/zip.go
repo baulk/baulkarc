@@ -14,18 +14,17 @@ type CompressionMethod uint16
 // CompressionMethod
 // value
 const (
-	Store      CompressionMethod = 0
-	Deflate    CompressionMethod = 8
-	BZIP2      CompressionMethod = 12
-	LZMA       CompressionMethod = 14
-	ZSTD       CompressionMethod = 20
-	LZMA2      CompressionMethod = 33
-	WINZIPZSTD CompressionMethod = 93
-	XZ         CompressionMethod = 95
-	JPEG       CompressionMethod = 96
-	WavPack    CompressionMethod = 97
-	PPMd       CompressionMethod = 98
-	AES        CompressionMethod = 99
+	Store   CompressionMethod = 0
+	Deflate CompressionMethod = 8
+	BZIP2   CompressionMethod = 12
+	LZMA    CompressionMethod = 14
+	LZMA2   CompressionMethod = 33
+	ZSTD    CompressionMethod = 93
+	XZ      CompressionMethod = 95
+	JPEG    CompressionMethod = 96
+	WavPack CompressionMethod = 97
+	PPMd    CompressionMethod = 98
+	AES     CompressionMethod = 99
 )
 
 func init() {

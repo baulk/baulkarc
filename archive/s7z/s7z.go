@@ -3,7 +3,6 @@ package s7z
 import (
 	"io"
 	"os"
-	"path"
 
 	"github.com/baulk/baulkarc/archive/basics"
 	"github.com/baulk/baulkarc/go7z"
@@ -56,7 +55,7 @@ func (e *Extractor) Extract(destination string) error {
 		if err != nil {
 			return err
 		}
-		name := path.Clean(hdr.Name)
+		//name := path.Clean(hdr.Name)
 		if hdr.IsEmptyStream && !hdr.IsEmptyFile {
 			if err := os.MkdirAll(hdr.Name, os.ModePerm); err != nil {
 				return err
