@@ -2,11 +2,25 @@ package archive
 
 import (
 	"errors"
+	"io"
 	"os"
 
 	"github.com/baulk/baulkarc/archive/rules"
+	"github.com/baulk/baulkarc/archive/tar"
 	"github.com/baulk/baulkarc/archive/zip"
 )
+
+func readMagic(fd *os.File) ([]byte, error) {
+	buf := make([]byte, 0, 512)
+	l, err := fd.Read(buf)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := fd.Seek(0, io.SeekStart); err != nil {
+		return nil, err
+	}
+	return buf[0:l], nil
+}
 
 // NewExtractor todo
 func NewExtractor(file string, es *rules.ExtractSetting) (Extractor, error) {
@@ -14,19 +28,23 @@ func NewExtractor(file string, es *rules.ExtractSetting) (Extractor, error) {
 	if err != nil {
 		return nil, err
 	}
-	sz, err := fd.Stat()
+	mb, err := readMagic(fd)
 	if err != nil {
-		fd.Close()
 		return nil, err
 	}
-	buf := make([]byte, 0, 256)
-	l, err := fd.Read(buf)
-	if err != nil {
-		_ = fd.Close()
-		return nil, err
+	if zip.Matched(mb) {
+		e, err := zip.NewExtractor(fd, es)
+		if err != nil {
+			return nil, err
+		}
+		return e, nil
 	}
-	if zip.Matched(buf[0:l]) {
-		e, err := zip.NewExtractor(fd, sz.Size(), es)
+	if tar.Matched(mb) {
+		e, _ := tar.NewExtractor(fd, es)
+		return e, nil
+	}
+	if al := tar.MatchExtension(file); al != rules.None {
+		e, err := tar.NewBrewingExtractor(fd, es, al)
 		if err != nil {
 			return nil, err
 		}

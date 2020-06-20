@@ -27,6 +27,19 @@ type Extractor struct {
 	es *rules.ExtractSetting
 }
 
+// Matched todo
+func Matched(buf []byte) bool {
+	return len(buf) > 261 &&
+		buf[257] == 0x75 && buf[258] == 0x73 &&
+		buf[259] == 0x74 && buf[260] == 0x61 &&
+		buf[261] == 0x72
+}
+
+//NewExtractor new tar extractor
+func NewExtractor(fd *os.File, es *rules.ExtractSetting) (*Extractor, error) {
+	return &Extractor{r: tar.NewReader(fd), fd: fd, es: es}, nil
+}
+
 // Close fd
 func (e *Extractor) Close() error {
 	return e.fd.Close()
@@ -47,14 +60,6 @@ func (e *Extractor) Extract(destination string) error {
 		}
 	}
 	return nil
-}
-
-// Matched todo
-func Matched(buf []byte) bool {
-	return len(buf) > 261 &&
-		buf[257] == 0x75 && buf[258] == 0x73 &&
-		buf[259] == 0x74 && buf[260] == 0x61 &&
-		buf[261] == 0x72
 }
 
 // BrewingExtractor todo
@@ -86,7 +91,7 @@ func MatchExtension(name string) int {
 		return rules.XZ
 	}
 	if strings.HasSuffix(name, ".tar.lz4") || strings.HasSuffix(name, ".tlz4") {
-		return rules.XZ
+		return rules.LZ4
 	}
 	return rules.None
 }

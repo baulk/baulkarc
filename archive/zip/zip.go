@@ -2,7 +2,6 @@ package zip
 
 import (
 	"archive/zip"
-	"io"
 	"os"
 
 	"github.com/baulk/baulkarc/archive/rules"
@@ -50,12 +49,13 @@ type Extractor struct {
 }
 
 // NewExtractor new extractor
-func NewExtractor(fd *os.File, size int64, es *rules.ExtractSetting) (*Extractor, error) {
-	if _, err := fd.Seek(0, io.SeekStart); err != nil {
+func NewExtractor(fd *os.File, es *rules.ExtractSetting) (*Extractor, error) {
+	st, err := fd.Stat()
+	if err != nil {
 		fd.Close()
 		return nil, err
 	}
-	zr, err := zip.NewReader(fd, size)
+	zr, err := zip.NewReader(fd, st.Size())
 	if err != nil {
 		fd.Close()
 		return nil, err
