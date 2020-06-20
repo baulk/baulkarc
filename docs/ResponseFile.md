@@ -1,9 +1,13 @@
-# Compression Input File
+# Compression Response File
+
+
+default: `compress.rsp.json`
 
 ```json
 {
     "destination": "package.zip",
     "method": "zstd",
+    "level": 0,
     "filse": [
         {
             "path": "path/to/file",

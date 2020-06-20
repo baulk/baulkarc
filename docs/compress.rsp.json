@@ -1,6 +1,7 @@
 {
     "destination": "package.zip",
     "method": "zstd",
+    "level": 0,
     "filse": [
         {
             "path": "path/to/file",
