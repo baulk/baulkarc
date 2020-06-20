@@ -3,14 +3,17 @@
 ```json
 {
     "destination": "package.zip",
-    "method":"zstd",
+    "method": "zstd",
     "filse": [
         {
-            "file": "path/to/file",
+            "path": "path/to/file",
             "destination": "bin",
             "name": "newname",
             "executabled": true
         }
+    ],
+    "dirs": [
+        "conf"
     ]
 }
 ```

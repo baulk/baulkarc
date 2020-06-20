@@ -3,10 +3,13 @@
     "method": "zstd",
     "filse": [
         {
-            "file": "path/to/file",
+            "path": "path/to/file",
             "destination": "bin",
             "name": "newname",
             "executabled": true
         }
+    ],
+    "dirs": [
+        "conf"
     ]
 }
