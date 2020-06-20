@@ -1,10 +1,12 @@
-package rules
+package settings
 
 // ExtractSetting todo
 type ExtractSetting struct {
 	OverwriteExisting bool
 	MkdirAll          bool
 	Encoding          string
+	Password          string
+	PassworldCallback func() string
 }
 
 // Compression Algorithm

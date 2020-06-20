@@ -1,10 +1,9 @@
 package rar
 
 import (
-	"io"
 	"os"
 
-	"github.com/baulk/baulkarc/archive/rules"
+	"github.com/baulk/baulkarc/archive/settings"
 	"github.com/nwaples/rardecode"
 )
 
@@ -13,7 +12,7 @@ type Extractor struct {
 	fd *os.File
 	rr *rardecode.Reader     // underlying stream reader
 	rc *rardecode.ReadCloser // supports multi-volume archives (files only)
-	es *rules.ExtractSetting
+	es *settings.ExtractSetting
 }
 
 // Matched Magic
@@ -25,15 +24,22 @@ func Matched(buf []byte) bool {
 }
 
 // NewExtractor new extractor
-func NewExtractor(fd *os.File, size int64, es *rules.ExtractSetting) (*Extractor, error) {
-	if _, err := fd.Seek(0, io.SeekStart); err != nil {
+func NewExtractor(fd *os.File, es *settings.ExtractSetting) (*Extractor, error) {
+	rr, err := rardecode.NewReader(fd, es.Password)
+	if err != nil {
 		fd.Close()
 		return nil, err
 	}
-	rr, err := rardecode.NewReader(fd, "")
-	if err != nil {
-		return nil, err
-	}
-	e := &Extractor{rr: rr}
-	return e, nil
+	return &Extractor{rr: rr}, nil
+}
+
+// Close fd
+func (e *Extractor) Close() error {
+	return e.fd.Close()
+}
+
+// Extract file
+func (e *Extractor) Extract(destination string) error {
+	//e.rr.Next()
+	return nil
 }

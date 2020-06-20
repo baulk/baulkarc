@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/andybalholm/brotli"
-	"github.com/baulk/baulkarc/archive/rules"
+	"github.com/baulk/baulkarc/archive/settings"
 	"github.com/dsnet/compress/bzip2"
 	"github.com/klauspost/compress/zstd"
 	"github.com/pierrec/lz4/v3"
@@ -24,7 +24,7 @@ import (
 type Extractor struct {
 	fd *os.File
 	r  *tar.Reader
-	es *rules.ExtractSetting
+	es *settings.ExtractSetting
 }
 
 // Matched todo
@@ -36,7 +36,7 @@ func Matched(buf []byte) bool {
 }
 
 //NewExtractor new tar extractor
-func NewExtractor(fd *os.File, es *rules.ExtractSetting) (*Extractor, error) {
+func NewExtractor(fd *os.File, es *settings.ExtractSetting) (*Extractor, error) {
 	return &Extractor{r: tar.NewReader(fd), fd: fd, es: es}, nil
 }
 
@@ -67,7 +67,7 @@ type BrewingExtractor struct {
 	fd  *os.File
 	r   *tar.Reader
 	mwr io.ReadCloser
-	es  *rules.ExtractSetting
+	es  *settings.ExtractSetting
 }
 
 // MatchExtension todo
@@ -76,55 +76,55 @@ func MatchExtension(name string) int {
 		name = strings.ToLower(name)
 	}
 	if strings.HasSuffix(name, ".tar.gz") || strings.HasSuffix(name, ".tgz") {
-		return rules.GZ
+		return settings.GZ
 	}
 	if strings.HasSuffix(name, ".tar.bz2") || strings.HasSuffix(name, ".tbz2") {
-		return rules.BZip2
+		return settings.BZip2
 	}
 	if strings.HasSuffix(name, ".tar.br") || strings.HasSuffix(name, ".tbr") {
-		return rules.Brotli
+		return settings.Brotli
 	}
 	if strings.HasSuffix(name, ".tar.zst") {
-		return rules.Zstandard
+		return settings.Zstandard
 	}
 	if strings.HasSuffix(name, ".tar.xz") || strings.HasSuffix(name, ".txz") {
-		return rules.XZ
+		return settings.XZ
 	}
 	if strings.HasSuffix(name, ".tar.lz4") || strings.HasSuffix(name, ".tlz4") {
-		return rules.LZ4
+		return settings.LZ4
 	}
-	return rules.None
+	return settings.None
 }
 
 // NewBrewingExtractor todo
-func NewBrewingExtractor(fd *os.File, es *rules.ExtractSetting, alg int) (*BrewingExtractor, error) {
+func NewBrewingExtractor(fd *os.File, es *settings.ExtractSetting, alg int) (*BrewingExtractor, error) {
 	var err error
 	e := &BrewingExtractor{es: es}
 	switch alg {
-	case rules.GZ:
+	case settings.GZ:
 		e.mwr, err = gzip.NewReader(fd)
 		if err != nil {
 			fd.Close()
 			return nil, err
 		}
-	case rules.LZ4:
+	case settings.LZ4:
 		e.mwr = ioutil.NopCloser(lz4.NewReader(fd))
-	case rules.Brotli:
+	case settings.Brotli:
 		e.mwr = ioutil.NopCloser(brotli.NewReader(fd))
-	case rules.BZip2:
+	case settings.BZip2:
 		e.mwr, err = bzip2.NewReader(fd, nil)
 		if err != nil {
 			fd.Close()
 			return nil, err
 		}
-	case rules.XZ:
+	case settings.XZ:
 		r, err := xz.NewReader(fd)
 		if err != nil {
 			fd.Close()
 			return nil, err
 		}
 		e.mwr = ioutil.NopCloser(r)
-	case rules.Zstandard:
+	case settings.Zstandard:
 		dec, err := zstd.NewReader(fd)
 		if err != nil {
 			fd.Close()

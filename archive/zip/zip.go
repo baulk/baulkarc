@@ -4,7 +4,7 @@ import (
 	"archive/zip"
 	"os"
 
-	"github.com/baulk/baulkarc/archive/rules"
+	"github.com/baulk/baulkarc/archive/settings"
 	"golang.org/x/text/encoding"
 )
 
@@ -45,11 +45,11 @@ type Extractor struct {
 	fd  *os.File
 	zr  *zip.Reader
 	dec *encoding.Decoder
-	es  *rules.ExtractSetting
+	es  *settings.ExtractSetting
 }
 
 // NewExtractor new extractor
-func NewExtractor(fd *os.File, es *rules.ExtractSetting) (*Extractor, error) {
+func NewExtractor(fd *os.File, es *settings.ExtractSetting) (*Extractor, error) {
 	st, err := fd.Stat()
 	if err != nil {
 		fd.Close()
