@@ -2,6 +2,7 @@ package utilities
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"strings"
 )
@@ -57,4 +58,9 @@ func ByteCat(sv ...[]byte) string {
 		_, _ = sb.Write(s)
 	}
 	return sb.String()
+}
+
+// ErrorCat todo
+func ErrorCat(sv ...string) error {
+	return errors.New(StrCat(sv...))
 }

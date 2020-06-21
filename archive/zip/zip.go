@@ -2,7 +2,11 @@ package zip
 
 import (
 	"archive/zip"
+	"io"
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/baulk/baulkarc/archive/basics"
 	"golang.org/x/text/encoding"
@@ -71,8 +75,72 @@ func (e *Extractor) Close() error {
 	return e.fd.Close()
 }
 
+func (e *Extractor) extractSymlink(p, destination string, zf *zip.File) error {
+	r, err := zf.Open()
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	lnk, err := ioutil.ReadAll(io.LimitReader(r, 32678))
+	if err != nil {
+		return err
+	}
+	lnkp := strings.TrimSpace(string(lnk))
+	if filepath.IsAbs(lnkp) {
+		return basics.SymbolicLink(filepath.Clean(lnkp), p)
+	}
+	oldname := filepath.Join(filepath.Dir(p), lnkp)
+	return basics.SymbolicLink(oldname, p)
+}
+
+func (e *Extractor) extractFile(p, destination string, zf *zip.File) error {
+	r, err := zf.Open()
+	if err != nil {
+		if !e.es.IgnoreError {
+			return err
+		}
+	}
+	defer r.Close()
+	return basics.WriteDisk(r, p, zf.FileHeader.Mode())
+}
+
 // Extract file
 func (e *Extractor) Extract(destination string) error {
-
+	for _, file := range e.zr.File {
+		out := filepath.Join(destination, file.Name)
+		if !basics.IsRelativePath(destination, out) {
+			if e.es.IgnoreError {
+				continue
+			}
+			return basics.ErrRelativePathEscape
+		}
+		fi := file.FileInfo()
+		if fi.IsDir() {
+			if err := os.MkdirAll(out, fi.Mode()); err != nil {
+				if !e.es.IgnoreError {
+					return err
+				}
+			}
+			continue
+		}
+		if e.es.OnEntry != nil {
+			if err := e.es.OnEntry(file.Name, fi); err != nil {
+				return err
+			}
+		}
+		if fi.Mode()&os.ModeSymlink != 0 {
+			if err := e.extractSymlink(out, destination, file); err != nil {
+				if !e.es.IgnoreError {
+					return err
+				}
+			}
+			continue
+		}
+		if err := e.extractFile(out, destination, file); err != nil {
+			if !e.es.IgnoreError {
+				return err
+			}
+		}
+	}
 	return nil
 }

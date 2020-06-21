@@ -1,12 +1,19 @@
 package basics
 
+import (
+	"errors"
+	"os"
+)
+
 // ExtractSetting todo
 type ExtractSetting struct {
 	OverwriteExisting bool
 	MkdirAll          bool
+	IgnoreError       bool
 	Encoding          string
 	Password          string
 	PassworldCallback func() string
+	OnEntry           func(name string, fi os.FileInfo) error
 }
 
 // Compression Algorithm
@@ -20,4 +27,9 @@ const (
 	LZ4
 	Brotli
 	Zstandard
+)
+
+// Error define
+var (
+	ErrRelativePathEscape = errors.New("relative path escape")
 )
