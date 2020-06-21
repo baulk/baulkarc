@@ -3,9 +3,11 @@ package s7z
 import (
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/baulk/bkz/archive/basics"
 	"github.com/baulk/bkz/go7z"
+	"github.com/baulk/bkz/utilities"
 )
 
 // Extractor type
@@ -45,6 +47,15 @@ func (e *Extractor) Close() error {
 	return e.fd.Close()
 }
 
+func (e *Extractor) extractFile(p string) error {
+	if basics.PathIsExists(p) {
+		if !e.es.OverwriteExisting {
+			return utilities.ErrorCat("file already exists: ", p)
+		}
+	}
+	return basics.WriteDisk(e.szr, p, 0664)
+}
+
 // Extract file
 func (e *Extractor) Extract(destination string) error {
 	for {
@@ -55,21 +66,26 @@ func (e *Extractor) Extract(destination string) error {
 		if err != nil {
 			return err
 		}
+		p := filepath.Join(destination, hdr.Name)
+		if !basics.IsRelativePath(destination, p) {
+			if e.es.IgnoreError {
+				continue
+			}
+			return basics.ErrRelativePathEscape
+		}
 		//name := path.Clean(hdr.Name)
 		if hdr.IsEmptyStream && !hdr.IsEmptyFile {
-			if err := os.MkdirAll(hdr.Name, os.ModePerm); err != nil {
-				return err
+			if err := os.MkdirAll(p, 0775); err != nil {
+				if !e.es.IgnoreError {
+					return err
+				}
 			}
 			continue
 		}
-		f, err := os.Create(hdr.Name)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		if _, err := io.Copy(f, e.szr); err != nil {
-			return err
+		if err := e.extractFile(p); err != nil {
+			if !e.es.IgnoreError {
+				return err
+			}
 		}
 	}
 	return nil

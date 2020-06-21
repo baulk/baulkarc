@@ -102,9 +102,7 @@ func (e *Extractor) extractFile(p, destination string, zf *zip.File) error {
 	}
 	r, err := zf.Open()
 	if err != nil {
-		if !e.es.IgnoreError {
-			return err
-		}
+		return err
 	}
 	defer r.Close()
 	return basics.WriteDisk(r, p, zf.FileHeader.Mode())
@@ -113,8 +111,8 @@ func (e *Extractor) extractFile(p, destination string, zf *zip.File) error {
 // Extract file
 func (e *Extractor) Extract(destination string) error {
 	for _, file := range e.zr.File {
-		out := filepath.Join(destination, file.Name)
-		if !basics.IsRelativePath(destination, out) {
+		p := filepath.Join(destination, file.Name)
+		if !basics.IsRelativePath(destination, p) {
 			if e.es.IgnoreError {
 				continue
 			}
@@ -122,7 +120,7 @@ func (e *Extractor) Extract(destination string) error {
 		}
 		fi := file.FileInfo()
 		if fi.IsDir() {
-			if err := os.MkdirAll(out, fi.Mode()); err != nil {
+			if err := os.MkdirAll(p, fi.Mode()); err != nil {
 				if !e.es.IgnoreError {
 					return err
 				}
@@ -135,14 +133,14 @@ func (e *Extractor) Extract(destination string) error {
 			}
 		}
 		if fi.Mode()&os.ModeSymlink != 0 {
-			if err := e.extractSymlink(out, destination, file); err != nil {
+			if err := e.extractSymlink(p, destination, file); err != nil {
 				if !e.es.IgnoreError {
 					return err
 				}
 			}
 			continue
 		}
-		if err := e.extractFile(out, destination, file); err != nil {
+		if err := e.extractFile(p, destination, file); err != nil {
 			if !e.es.IgnoreError {
 				return err
 			}

@@ -3,8 +3,10 @@ package rar
 import (
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/baulk/bkz/archive/basics"
+	"github.com/baulk/bkz/utilities"
 	"github.com/nwaples/rardecode"
 )
 
@@ -39,9 +41,17 @@ func (e *Extractor) Close() error {
 	return e.fd.Close()
 }
 
+func (e *Extractor) extractFile(p string, mode os.FileMode) error {
+	if basics.PathIsExists(p) {
+		if !e.es.OverwriteExisting {
+			return utilities.ErrorCat("file already exists: ", p)
+		}
+	}
+	return basics.WriteDisk(e.rr, p, mode)
+}
+
 // Extract file
 func (e *Extractor) Extract(destination string) error {
-	//e.rr.Next()
 	for {
 		hdr, err := e.rr.Next()
 		if err == io.EOF {
@@ -50,8 +60,25 @@ func (e *Extractor) Extract(destination string) error {
 		if err != nil {
 			return err
 		}
+		p := filepath.Join(destination, hdr.Name)
+		if !basics.IsRelativePath(destination, p) {
+			if e.es.IgnoreError {
+				continue
+			}
+			return basics.ErrRelativePathEscape
+		}
 		if hdr.IsDir {
-
+			if err := os.MkdirAll(p, 0775); err != nil {
+				if !e.es.IgnoreError {
+					return err
+				}
+			}
+			continue
+		}
+		if err := e.extractFile(p, hdr.Mode()); err != nil {
+			if !e.es.IgnoreError {
+				return err
+			}
 		}
 	}
 	return nil
