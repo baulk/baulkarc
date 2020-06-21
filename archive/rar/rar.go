@@ -1,6 +1,7 @@
 package rar
 
 import (
+	"io"
 	"os"
 
 	"github.com/baulk/bkz/archive/basics"
@@ -41,5 +42,17 @@ func (e *Extractor) Close() error {
 // Extract file
 func (e *Extractor) Extract(destination string) error {
 	//e.rr.Next()
+	for {
+		hdr, err := e.rr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if hdr.IsDir {
+
+		}
+	}
 	return nil
 }

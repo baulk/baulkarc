@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/baulk/bkz/archive/basics"
+	"github.com/baulk/bkz/utilities"
 	"golang.org/x/text/encoding"
 )
 
@@ -94,6 +95,11 @@ func (e *Extractor) extractSymlink(p, destination string, zf *zip.File) error {
 }
 
 func (e *Extractor) extractFile(p, destination string, zf *zip.File) error {
+	if basics.PathIsExists(p) {
+		if !e.es.OverwriteExisting {
+			return utilities.ErrorCat("file already exists: ", p)
+		}
+	}
 	r, err := zf.Open()
 	if err != nil {
 		if !e.es.IgnoreError {

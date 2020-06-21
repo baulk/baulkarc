@@ -7,11 +7,13 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 
 	"github.com/andybalholm/brotli"
 	"github.com/baulk/bkz/archive/basics"
+	"github.com/baulk/bkz/utilities"
 	"github.com/dsnet/compress/bzip2"
 	"github.com/klauspost/compress/zstd"
 	"github.com/pierrec/lz4/v3"
@@ -45,6 +47,24 @@ func (e *Extractor) Close() error {
 	return e.fd.Close()
 }
 
+func (e *Extractor) extractSymlink(p, destination string, hdr *tar.Header) error {
+	linkname := hdr.Linkname
+	if filepath.IsAbs(linkname) {
+		return basics.SymbolicLink(filepath.Clean(linkname), p)
+	}
+	oldname := filepath.Join(filepath.Dir(p), linkname)
+	return basics.SymbolicLink(oldname, p)
+}
+
+func (e *Extractor) extractHardLink(p, destination string, hdr *tar.Header) error {
+	linkname := hdr.Linkname
+	if filepath.IsAbs(linkname) {
+		return basics.HardLink(filepath.Clean(linkname), p)
+	}
+	oldname := filepath.Join(filepath.Dir(p), linkname)
+	return basics.HardLink(oldname, p)
+}
+
 // Extract file
 func (e *Extractor) Extract(destination string) error {
 	for {
@@ -55,8 +75,43 @@ func (e *Extractor) Extract(destination string) error {
 		if err != nil {
 			return err
 		}
-		if hdr.Size != 0 {
-
+		p := filepath.Join(destination, hdr.Name)
+		if !basics.IsRelativePath(destination, p) {
+			if e.es.IgnoreError {
+				continue
+			}
+			return basics.ErrRelativePathEscape
+		}
+		if hdr.Typeflag != tar.TypeDir && basics.PathIsExists(p) && !e.es.OverwriteExisting {
+			return utilities.ErrorCat("file already exists: ", p)
+		}
+		fi := hdr.FileInfo()
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+			if err := os.MkdirAll(p, fi.Mode()); err != nil {
+				if !e.es.IgnoreError {
+					return err
+				}
+			}
+		case tar.TypeReg, tar.TypeRegA, tar.TypeChar, tar.TypeBlock, tar.TypeFifo, tar.TypeGNUSparse:
+			if err := basics.WriteDisk(e.r, p, fi.Mode()); err != nil {
+				if !e.es.IgnoreError {
+					return err
+				}
+			}
+		case tar.TypeSymlink:
+			if err := e.extractSymlink(p, destination, hdr); err != nil {
+				if !e.es.IgnoreError {
+					return err
+				}
+			}
+		case tar.TypeLink:
+			if err := e.extractHardLink(p, destination, hdr); err != nil {
+				if !e.es.IgnoreError {
+					return err
+				}
+			}
+		case tar.TypeXGlobalHeader:
 		}
 	}
 	return nil
@@ -64,10 +119,8 @@ func (e *Extractor) Extract(destination string) error {
 
 // BrewingExtractor todo
 type BrewingExtractor struct {
-	fd  *os.File
-	r   *tar.Reader
-	mwr io.ReadCloser
-	es  *basics.ExtractSetting
+	extractor *Extractor
+	mwr       io.ReadCloser
 }
 
 // MatchExtension todo
@@ -99,7 +152,7 @@ func MatchExtension(name string) int {
 // NewBrewingExtractor todo
 func NewBrewingExtractor(fd *os.File, es *basics.ExtractSetting, alg int) (*BrewingExtractor, error) {
 	var err error
-	e := &BrewingExtractor{es: es}
+	e := &BrewingExtractor{extractor: &Extractor{es: es}}
 	switch alg {
 	case basics.GZ:
 		e.mwr, err = gzip.NewReader(fd)
@@ -135,19 +188,18 @@ func NewBrewingExtractor(fd *os.File, es *basics.ExtractSetting, alg int) (*Brew
 		fd.Close()
 		return nil, fmt.Errorf("unsupport compress algorithm %d", alg)
 	}
-	e.fd = fd
-	e.r = tar.NewReader(e.mwr)
+	e.extractor.fd = fd
+	e.extractor.r = tar.NewReader(e.mwr)
 	return e, nil
 }
 
 // Close fd
 func (e *BrewingExtractor) Close() error {
 	_ = e.mwr.Close()
-	return e.fd.Close()
+	return e.extractor.Close()
 }
 
 // Extract file
 func (e *BrewingExtractor) Extract(destination string) error {
-
-	return nil
+	return e.extractor.Extract(destination)
 }

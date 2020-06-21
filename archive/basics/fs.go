@@ -30,3 +30,29 @@ func SymbolicLink(oldname string, newname string) error {
 	}
 	return nil
 }
+
+// HardLink todo
+func HardLink(oldname string, newname string) error {
+	if err := os.MkdirAll(filepath.Dir(newname), 0755); err != nil {
+		return fmt.Errorf("%s: making directory for file: %v", newname, err)
+	}
+
+	if _, err := os.Lstat(newname); err == nil {
+		if err = os.Remove(newname); err != nil {
+			return fmt.Errorf("%s: failed to unlink: %+v", newname, err)
+		}
+	}
+
+	if err := os.Link(oldname, newname); err != nil {
+		return fmt.Errorf("%s: making hard link for: %v", newname, err)
+	}
+	return nil
+}
+
+// PathIsExists todo
+func PathIsExists(p string) bool {
+	if _, err := os.Stat(p); err != nil && os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
