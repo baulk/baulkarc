@@ -3,7 +3,7 @@ package rar
 import (
 	"os"
 
-	"github.com/baulk/baulkarc/archive/basics"
+	"github.com/baulk/bkz/archive/basics"
 	"github.com/nwaples/rardecode"
 )
 

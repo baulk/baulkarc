@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/baulk/baulkarc/solidblock"
+	"github.com/baulk/bkz/solidblock"
 )
 
 func ExampleSolidblock() {

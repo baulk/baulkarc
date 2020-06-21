@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/baulk/baulkarc/archive/basics"
+	"github.com/baulk/bkz/archive/basics"
 	"golang.org/x/text/encoding"
 )
 

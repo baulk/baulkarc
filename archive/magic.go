@@ -5,11 +5,11 @@ import (
 	"io"
 	"os"
 
-	"github.com/baulk/baulkarc/archive/basics"
-	"github.com/baulk/baulkarc/archive/rar"
-	"github.com/baulk/baulkarc/archive/s7z"
-	"github.com/baulk/baulkarc/archive/tar"
-	"github.com/baulk/baulkarc/archive/zip"
+	"github.com/baulk/bkz/archive/basics"
+	"github.com/baulk/bkz/archive/rar"
+	"github.com/baulk/bkz/archive/s7z"
+	"github.com/baulk/bkz/archive/tar"
+	"github.com/baulk/bkz/archive/zip"
 )
 
 func readMagic(fd *os.File) ([]byte, error) {

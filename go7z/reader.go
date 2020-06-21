@@ -10,8 +10,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/baulk/baulkarc/go7z/headers"
-	"github.com/baulk/baulkarc/solidblock"
+	"github.com/baulk/bkz/go7z/headers"
+	"github.com/baulk/bkz/solidblock"
 )
 
 var (

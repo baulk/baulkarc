@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/andybalholm/brotli"
-	"github.com/baulk/baulkarc/archive/basics"
+	"github.com/baulk/bkz/archive/basics"
 	"github.com/dsnet/compress/bzip2"
 	"github.com/klauspost/compress/zstd"
 	"github.com/pierrec/lz4/v3"

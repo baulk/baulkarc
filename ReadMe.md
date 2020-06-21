@@ -1,5 +1,5 @@
-# BaulkArc
+# bkz
 
-BaulkArc Interesting compression and decompression tools
+bkz Interesting compression and decompression tools
 
 WIP

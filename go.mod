@@ -1,4 +1,4 @@
-module github.com/baulk/baulkarc
+module github.com/baulk/bkz
 
 go 1.14
 

@@ -4,8 +4,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/baulk/baulkarc/archive/basics"
-	"github.com/baulk/baulkarc/go7z"
+	"github.com/baulk/bkz/archive/basics"
+	"github.com/baulk/bkz/go7z"
 )
 
 // Extractor type
