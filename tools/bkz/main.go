@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/baulk/baulkarc/utilities"
+	"github.com/baulk/bkz/utilities"
 )
 
 // IsDebugMode todo
