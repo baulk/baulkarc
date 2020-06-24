@@ -7,7 +7,7 @@ require (
 	github.com/dsnet/compress v0.0.1
 	github.com/frankban/quicktest v1.10.0 // indirect
 	github.com/google/go-cmp v0.5.0 // indirect
-	github.com/klauspost/compress v1.10.9
+	github.com/klauspost/compress v1.10.10
 	github.com/kr/text v0.2.0 // indirect
 	github.com/nwaples/rardecode v1.1.0
 	github.com/pierrec/lz4/v3 v3.3.2
