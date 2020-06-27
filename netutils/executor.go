@@ -1,4 +1,4 @@
-package net
+package netutils
 
 import (
 	"crypto/tls"
@@ -12,6 +12,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/baulk/bkz/progressbar"
 )
 
 // error
@@ -65,7 +67,12 @@ func NewExecutor() *Executor {
 	}
 	_ = os.MkdirAll(bkznetdir, 0755)
 	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: isTrue(os.Getenv("BKZ_INSECURE_TLS"))} //set ssl
-	return &Executor{client: &http.Client{Transport: transport}}
+	return &Executor{
+		OutDir: bkznetdir,
+		client: &http.Client{
+			Transport: transport,
+		},
+	}
 }
 
 func resolveFileName(resp *http.Response, rawurl string) string {
@@ -106,6 +113,11 @@ func (e *Executor) Get(rawurl string) (string, error) {
 	}
 	defer fd.Close()
 
-	io.Copy(fd, resp.Body)
+	bar := progressbar.DefaultBytes(
+		resp.ContentLength,
+		filename,
+	)
+	w := io.MultiWriter(fd, bar)
+	io.Copy(w, resp.Body)
 	return fullname, nil
 }

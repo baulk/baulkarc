@@ -1,6 +1,6 @@
 // +build !windows
 
-package net
+package netutils
 
 // ResolveProxy todo
 func ResolveProxy() (*ProxySettings, error) {

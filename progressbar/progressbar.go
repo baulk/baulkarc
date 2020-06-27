@@ -279,6 +279,7 @@ func DefaultBytes(maxBytes int64, description ...string) *ProgressBar {
 		maxBytes,
 		OptionSetDescription(desc),
 		OptionSetWriter(os.Stderr),
+		OptionEnableColorCodes(true),
 		OptionShowBytes(true),
 		OptionSetWidth(10),
 		OptionThrottle(65*time.Millisecond),
@@ -288,6 +289,13 @@ func DefaultBytes(maxBytes int64, description ...string) *ProgressBar {
 		}),
 		OptionSpinnerType(14),
 		OptionFullWidth(),
+		OptionSetTheme(Theme{
+			Saucer:        "[green]#[reset]",
+			SaucerHead:    "[green]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}),
 	)
 	bar.RenderBlank()
 	return bar
@@ -377,7 +385,7 @@ func (p *ProgressBar) Add64(num int64) error {
 
 	// reset the countdown timer every second to take rolling average
 	p.state.counterNumSinceLast += num
-	if time.Since(p.state.counterTime).Seconds() > 0.5 {
+	if time.Since(p.state.counterTime).Seconds() > 1.0 {
 		p.state.counterLastTenRates = append(p.state.counterLastTenRates, float64(p.state.counterNumSinceLast)/time.Since(p.state.counterTime).Seconds())
 		if len(p.state.counterLastTenRates) > 10 {
 			p.state.counterLastTenRates = p.state.counterLastTenRates[1:]
@@ -459,10 +467,10 @@ func (p *ProgressBar) render() error {
 	}
 
 	// first, clear the existing progress bar
-	err := clearProgressBar(p.config, p.state)
-	if err != nil {
-		return err
-	}
+	// err := clearProgressBar(p.config, p.state)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// check if the progress bar is finished
 	if !p.state.finished && p.state.currentNum >= p.config.max {
@@ -614,13 +622,13 @@ func renderProgressBar(c config, s state) (int, error) {
 		repeatAmount = 0
 	}
 	if c.ignoreLength {
-		str = fmt.Sprintf("\r%s %s %s ",
+		str = fmt.Sprintf("\x1b[2K\r%s %s %s ",
 			spinners[c.spinnerType][int(math.Round(math.Mod(float64(time.Since(s.counterTime).Milliseconds()/100), float64(len(spinners[c.spinnerType])))))],
 			c.description,
 			bytesString,
 		)
 	} else if leftBrac == "" {
-		str = fmt.Sprintf("\r%s%4d%% %s%s%s%s %s ",
+		str = fmt.Sprintf("\x1b[2K\r%s%4d%% %s%s%s%s %s ",
 			c.description,
 			s.currentPercent,
 			c.theme.BarStart,
@@ -630,7 +638,7 @@ func renderProgressBar(c config, s state) (int, error) {
 			bytesString,
 		)
 	} else {
-		str = fmt.Sprintf("\r%s%4d%% %s%s%s%s %s [%s:%s]",
+		str = fmt.Sprintf("\x1b[2K\r%s%4d%% %s%s%s%s %s [%s:%s]",
 			c.description,
 			s.currentPercent,
 			c.theme.BarStart,
@@ -670,8 +678,7 @@ func clearProgressBar(c config, s state) error {
 	// fill the current line with enough spaces
 	// to overwrite the progress bar and jump
 	// back to the beginning of the line
-	str := fmt.Sprintf("\r%s\r", strings.Repeat(" ", s.maxLineWidth))
-	return writeString(c, str)
+	return writeString(c, "\x1b[2K\r")
 }
 
 func writeString(c config, str string) error {
