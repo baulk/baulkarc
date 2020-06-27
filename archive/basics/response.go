@@ -5,6 +5,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/baulk/bkz/netutils"
 )
 
 // File compress file
@@ -15,6 +17,8 @@ type File struct {
 	Name        string `json:"name,omitempty"`        // if not exists use filepath.Base
 	Executabled bool   `json:"executabled,omitempty"` // when mark executabled. a script create under windows can run linux
 }
+
+var fileexecutor = netutils.NewExecutor()
 
 // Prepare check file
 func (file *File) Prepare() error {
@@ -27,6 +31,11 @@ func (file *File) Prepare() error {
 	if file.URL == "" {
 		return ErrResponseFilesField
 	}
+	fullpath, err := fileexecutor.Get(file.URL)
+	if err != nil {
+		return err
+	}
+	file.Path = fullpath
 	return nil
 }
 

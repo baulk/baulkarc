@@ -112,12 +112,13 @@ func (e *Executor) Get(rawurl string) (string, error) {
 		return "", err
 	}
 	defer fd.Close()
-
 	bar := progressbar.DefaultBytes(
 		resp.ContentLength,
 		filename,
 	)
 	w := io.MultiWriter(fd, bar)
-	io.Copy(w, resp.Body)
+	if _, err := io.Copy(w, resp.Body); err != nil && err != io.EOF {
+		return "", err
+	}
 	return fullname, nil
 }
