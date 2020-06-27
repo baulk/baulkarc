@@ -32,4 +32,5 @@ const (
 // Error define
 var (
 	ErrRelativePathEscape = errors.New("relative path escape")
+	ErrResponseFilesField = errors.New("response files field error")
 )

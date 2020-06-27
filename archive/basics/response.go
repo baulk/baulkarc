@@ -9,10 +9,25 @@ import (
 
 // File compress file
 type File struct {
-	Path        string `json:"path"`
+	URL         string `json:"url,omitempty"`
+	Path        string `json:"path,omitempty"`
 	Destination string `json:"destination"`
 	Name        string `json:"name,omitempty"`        // if not exists use filepath.Base
 	Executabled bool   `json:"executabled,omitempty"` // when mark executabled. a script create under windows can run linux
+}
+
+// Prepare check file
+func (file *File) Prepare() error {
+	if file.Path != "" {
+		if _, err := os.Stat(file.Path); err != nil {
+			return err
+		}
+		return nil
+	}
+	if file.URL == "" {
+		return ErrResponseFilesField
+	}
+	return nil
 }
 
 // BuildPath todo
