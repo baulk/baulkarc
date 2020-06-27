@@ -12,6 +12,7 @@ import (
 // File compress file
 type File struct {
 	URL         string `json:"url,omitempty"`
+	Hash        string `json:"hash,omitempty"`
 	Path        string `json:"path,omitempty"`
 	Destination string `json:"destination"`
 	Name        string `json:"name,omitempty"`        // if not exists use filepath.Base
@@ -31,7 +32,7 @@ func (file *File) Prepare() error {
 	if file.URL == "" {
 		return ErrResponseFilesField
 	}
-	fullpath, err := fileexecutor.Get(file.URL)
+	fullpath, err := fileexecutor.Get(file.URL, file.Hash)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package netutils
 
 import (
 	"crypto/tls"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -63,7 +64,7 @@ func NewExecutor() *Executor {
 	}
 	bkznetdir := os.Getenv("BKZ_DOWNLOAD_OUTDIR")
 	if len(bkznetdir) == 0 {
-		bkznetdir = os.ExpandEnv(fmt.Sprintf("${TEMP}/bkz_net_%d", os.Getpid()))
+		bkznetdir = os.ExpandEnv("${TEMP}/bkz_download_out")
 	}
 	_ = os.MkdirAll(bkznetdir, 0755)
 	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: isTrue(os.Getenv("BKZ_INSECURE_TLS"))} //set ssl
@@ -93,8 +94,32 @@ func resolveFileName(resp *http.Response, rawurl string) string {
 	return "index.html"
 }
 
+func isCachedFile(fullname, hsx string) bool {
+	if hsx == "" {
+		return false
+	}
+	if _, err := os.Stat(fullname); err != nil {
+		return false
+	}
+	hc := NewHashComparator(hsx)
+	if hc == nil {
+		return false
+	}
+	fd, err := os.Open(fullname)
+	if err != nil {
+		return false
+	}
+	if _, err := io.Copy(hc.H, fd); err != nil && err != io.EOF {
+		return false
+	}
+	if hsx2 := hex.EncodeToString(hc.H.Sum(nil)); hsx2 != hc.S {
+		return false
+	}
+	return true
+}
+
 // Get get file from network
-func (e *Executor) Get(rawurl string) (string, error) {
+func (e *Executor) Get(rawurl, hsx string) (string, error) {
 	req, err := http.NewRequest("GET", rawurl, nil)
 	if err != nil {
 		return "", err
@@ -107,6 +132,10 @@ func (e *Executor) Get(rawurl string) (string, error) {
 	defer resp.Body.Close()
 	filename := resolveFileName(resp, rawurl)
 	fullname := filepath.Join(e.OutDir, filename)
+	if isCachedFile(fullname, hsx) {
+		return fullname, nil
+	}
+	hc := NewHashComparator(hsx)
 	fd, err := os.Create(fullname)
 	if err != nil {
 		return "", err
@@ -117,8 +146,16 @@ func (e *Executor) Get(rawurl string) (string, error) {
 		filename,
 	)
 	w := io.MultiWriter(fd, bar)
+	if hc != nil {
+		w = io.MultiWriter(w, hc.H)
+	}
 	if _, err := io.Copy(w, resp.Body); err != nil && err != io.EOF {
 		return "", err
+	}
+	if hc != nil {
+		if hsx2 := hex.EncodeToString(hc.H.Sum(nil)); hsx2 != hc.S {
+			return "", fmt.Errorf("The calculated hash value %s is different from %s", hsx2, hc.S)
+		}
 	}
 	return fullname, nil
 }
