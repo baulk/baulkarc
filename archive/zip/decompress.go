@@ -90,9 +90,8 @@ func newZstdReader(r io.Reader) io.ReadCloser {
 	return &pooledZstdReader{zr: zr}
 }
 
-func zipRegisterDecompressor() {
-	zip.RegisterDecompressor(uint16(BZIP2), newBzip2Reader)
-	zip.RegisterDecompressor(uint16(LZMA), newLzmaReader)
-	zip.RegisterDecompressor(uint16(XZ), newXzReader)
-	zip.RegisterDecompressor(uint16(ZSTD), newZstdReader)
+func zipRegisterDecompressor(zr *zip.Reader) {
+	zr.RegisterDecompressor(uint16(BZIP2), newBzip2Reader)
+	zr.RegisterDecompressor(uint16(XZ), newXzReader)
+	zr.RegisterDecompressor(uint16(ZSTD), newZstdReader)
 }

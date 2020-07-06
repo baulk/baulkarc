@@ -1,7 +1,6 @@
 package zip
 
 import (
-	"archive/zip"
 	"io"
 	"io/ioutil"
 	"os"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/baulk/bkz/archive/basics"
 	"github.com/baulk/bkz/utilities"
+	"github.com/klauspost/compress/zip"
 	"golang.org/x/text/encoding"
 )
 
@@ -31,11 +31,6 @@ const (
 	PPMd    CompressionMethod = 98
 	AES     CompressionMethod = 99
 )
-
-func init() {
-	zipRegisterDecompressor()
-	zipRegisterCompressor()
-}
 
 // Matched magic
 func Matched(buf []byte) bool {
@@ -64,6 +59,7 @@ func NewExtractor(fd *os.File, es *basics.ExtractSetting) (*Extractor, error) {
 		fd.Close()
 		return nil, err
 	}
+	zipRegisterDecompressor(zr)
 	e := &Extractor{fd: fd, zr: zr, es: es}
 	if ens := os.Getenv("ZIP_ENCODING"); len(ens) != 0 {
 		e.initializeEncoder(ens)
@@ -148,3 +144,5 @@ func (e *Extractor) Extract(destination string) error {
 	}
 	return nil
 }
+
+// new archive plase call zipRegisterCompressor

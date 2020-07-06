@@ -49,12 +49,12 @@ func (w *pooledZstdWriter) Close() error {
 	return err
 }
 
-func zipRegisterCompressor() {
-	zip.RegisterCompressor(uint16(BZIP2), func(w io.Writer) (io.WriteCloser, error) {
+func zipRegisterCompressor(zw *zip.Writer) {
+	zw.RegisterCompressor(uint16(BZIP2), func(w io.Writer) (io.WriteCloser, error) {
 		return bzip2.NewWriter(w, nil)
 	})
-	zip.RegisterCompressor(uint16(XZ), func(w io.Writer) (io.WriteCloser, error) {
+	zw.RegisterCompressor(uint16(XZ), func(w io.Writer) (io.WriteCloser, error) {
 		return xz.NewWriter(w)
 	})
-	zip.RegisterCompressor(uint16(ZSTD), newZstdWriter)
+	zw.RegisterCompressor(uint16(ZSTD), newZstdWriter)
 }
