@@ -5,6 +5,7 @@ import (
 	"io"
 )
 
+// MaxFolderCount count
 const MaxFolderCount = 1 << 30
 
 // ErrInvalidCountExceeded is returned when the folder count is

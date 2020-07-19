@@ -36,6 +36,7 @@ const (
 	k7zDummy
 )
 
+// MaxNumber max
 const MaxNumber = 0x7FFFFFFF
 
 var (

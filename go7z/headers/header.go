@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	// SignatureHeader size is the size of the signature header.
+	// SignatureHeaderSize SignatureHeader size is the size of the signature header.
 	SignatureHeaderSize = 32
 
 	// MaxHeaderSize is the maximum header size.

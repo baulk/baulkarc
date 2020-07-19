@@ -114,6 +114,12 @@ func NewReader(r io.ReaderAt, size int64) (*Reader, error) {
 	return szr, nil
 }
 
+// NewLimitReader warpper io limited
+func NewLimitReader(r io.Reader, n int64) *io.LimitedReader {
+	lr := io.LimitReader(r, n)
+	return lr.(*io.LimitedReader)
+}
+
 func (sz *Reader) init(r io.ReaderAt, size int64, ignoreChecksumError bool) error {
 	sz.r = io.NewSectionReader(r, 0, size)
 	signatureHeader, err := headers.ReadSignatureHeader(sz.r)
@@ -132,8 +138,7 @@ func (sz *Reader) init(r io.ReaderAt, size int64, ignoreChecksumError bool) erro
 
 	crc := crc32.NewIEEE()
 	tee := io.TeeReader(bufio.NewReader(io.LimitReader(sz.r, signatureHeader.StartHeader.NextHeaderSize)), crc)
-
-	header, encoded, err := headers.ReadPackedStreamsForHeaders(&io.LimitedReader{tee, signatureHeader.StartHeader.NextHeaderSize})
+	header, encoded, err := headers.ReadPackedStreamsForHeaders(NewLimitReader(tee, signatureHeader.StartHeader.NextHeaderSize))
 	if err != nil {
 		return err
 	}
@@ -154,8 +159,7 @@ func (sz *Reader) init(r io.ReaderAt, size int64, ignoreChecksumError bool) erro
 		if err = folders[0].Next(); err != nil {
 			return err
 		}
-
-		header, _, err = headers.ReadPackedStreamsForHeaders(&io.LimitedReader{folders[0].sb, folders[0].sb.Size()})
+		header, _, err = headers.ReadPackedStreamsForHeaders(NewLimitReader(folders[0].sb, folders[0].sb.Size()))
 		if err != nil {
 			return err
 		}
